@@ -18,25 +18,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonParser;
+import com.google.gson.internal.LinkedTreeMap;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
@@ -62,12 +55,8 @@ public class MainActivity extends Activity implements
         list.add("Butter");
         list.add("Jeans");
 
-        JSONObject jsonObject = new JSONObject();
         String url = "";
         try {
-            //JSONArray jArray = new JSONArray();
-            //jArray.put(list);
-            //jsonObject.put("jj",jArray);
             String json = gson.toJson(list);
             url = "http://10.0.2.2:8080/jsonp.htm?jj=" + URLEncoder.encode(json, "UTF-8");
         } catch (Exception e) {
@@ -145,9 +134,16 @@ public class MainActivity extends Activity implements
         protected void onPostExecute(String result) {
             Toast.makeText(getBaseContext(), "Received!", Toast.LENGTH_LONG).show();
             Gson gson = new Gson();
-            Item item = gson.fromJson(result, Item.class);
-            item.getId();
+            Object objectFromJson = gson.fromJson(result, Object.class);
+            ArrayList objectList = (ArrayList) objectFromJson;
+            ArrayList<Item> items = new ArrayList<Item>();
+            for (Object object : objectList) {
+                LinkedTreeMap linkedTreeMap = (LinkedTreeMap) object;
+                items.add(new Item(((Double) linkedTreeMap.get("id")).intValue(),linkedTreeMap.get("name").toString(),
+                        linkedTreeMap.get("location").toString()));
+            }
         }
+
     }
 
     public class SendAsyncTask extends AsyncTask<String, Void, String> {
@@ -216,7 +212,5 @@ public class MainActivity extends Activity implements
         return result;
 
     }
-
-
 }
 
